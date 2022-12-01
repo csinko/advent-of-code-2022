@@ -4,15 +4,8 @@
 #include <stdlib.h>
 
 enum {
-  kError_None        = 0,
-  kError_ReadFailure = 1,
-
-};
-
-enum {
-  kBufferSize = 6,  // The MAX length of a number, in digits, plus newline
-  kLengthGuess = 4,       // The MODE length of a number, in digits
-  kReadSize = kLengthGuess + 1  // Number of bytes to try to read into the buffer
+  kBufferSize = 6,              // The MAX length of a number, in digits, plus newline
+  kNumTopSaved = 3,             // Top number of calories to track and sum
 };
 
 /*
@@ -30,7 +23,7 @@ int main()
   // We can use this as A/B to read data in 
   uint8_t aBuffer[ kBufferSize ];
 
-  uint32_t uMaxCalories = 0;
+  uint32_t auMaxCalories[ kNumTopSaved ] = { 0 };
   uint32_t uCurrentCalories = 0;
 
   while ( true )
@@ -45,9 +38,21 @@ int main()
       if ( aBuffer[ 0 ] == ( uint8_t ) '\n' )
       {
         // We're done counting for this one
-        if ( uCurrentCalories > uMaxCalories )
+        if ( uCurrentCalories > auMaxCalories[ kNumTopSaved - 1 ] )
         {
-          uMaxCalories = uCurrentCalories;
+          // The Current calories is > than the kNumTopSaved - 1 amount, so kick it out and re-order
+          auMaxCalories[ kNumTopSaved - 1 ] = uCurrentCalories;
+
+          // Perform a sort based on the new insertion
+          for ( uint8_t i = kNumTopSaved - 1; i > 0; i-- )
+          {
+            if ( auMaxCalories[ i ] > auMaxCalories[ i - 1 ] )
+            {
+              uint32_t temp = auMaxCalories[ i - 1 ];
+              auMaxCalories[ i - 1 ]  = auMaxCalories[ i ];
+              auMaxCalories[ i ] = temp;
+            }
+          }
         }
         uCurrentCalories = 0;
         continue;
@@ -75,6 +80,12 @@ int main()
       uCurrentCalories += numCalories;
   }
 
-  printf( "Max Calories: %d\r\n", uMaxCalories );
-  return kError_None;
+  // Calculate the total
+  uint32_t uMax = 0;
+  for ( uint8_t i = 0; i < kNumTopSaved; i++ )
+  {
+    uMax += auMaxCalories[ i ];
+  }
+  printf( "Max Calories: %d\r\n", uMax );
+  return 0;
 }
