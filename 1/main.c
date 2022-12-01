@@ -19,8 +19,6 @@ int main()
   // We know the file is there, no need to NULL check
   FILE *pstFile = fopen("input.txt", "r");
 
-  // Create a buffer that is twice the length of the largest expected number.
-  // We can use this as A/B to read data in 
   uint8_t aBuffer[ kBufferSize ];
 
   uint32_t auMaxCalories[ kNumTopSaved ] = { 0 };
